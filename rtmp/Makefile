@@ -6,4 +6,5 @@ CUR_SOURCE=${wildcard *.cpp}
 CUR_OBJS=${patsubst %.cpp, %.o, $(CUR_SOURCE)}
 all:$(CUR_OBJS)
 $(CUR_OBJS):%.o:%.cpp
-	$(CC) -c -g -Wconversion -fPIC  $^ -o $(ROOT_DIR)/$(OBJ)/$@
+	$(CC) -c -g -Wconversion -fPIC -I $(OPENCV_FFMPEG)/include/  $^ -o $(ROOT_DIR)/$(OBJ)/$@ -L$(OPENCV_FFMPEG)/lib -lavformat -lavcodec -lavutil -lswscale -Os -std=c++11
+
