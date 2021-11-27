@@ -10,7 +10,7 @@ CameraCapture::CameraCapture()
 {
 	mCapturethread = new NThread();
 	mCaptureHandler = new CameraCaptureHandler(mCapturethread->getLooper(), this);
-	mCameraDeviceIndex = 0;
+	mCameraDeviceIndex = 2;
 	/*
 	mCaptureWidth = 848;
 	mCaptureHeight = 480;
