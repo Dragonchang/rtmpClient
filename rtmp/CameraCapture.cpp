@@ -17,6 +17,7 @@ CameraCapture::CameraCapture()
 	mDisplayHeight = 480;
 	mFramerate = 30;
 	mFlipMethod = 0;
+	mVideoCapture = NULL;
 }
 
 /*****************************************************************
