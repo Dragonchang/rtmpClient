@@ -11,7 +11,7 @@ PushRtmp::PushRtmp(int width, int height, int fps, int cameraDeviceIndex)
 	m_width = width;
 	m_height = height;
 	m_fps = fps;
-	mOutUrl = "rtmp://127.0.0.1/live/livestream";
+	mOutUrl = "rtmp://127.0.0.1/live/livestream"+ std::string(mCameraDeviceIndex);
 	//av_log_set_level(AV_LOG_DEBUG);
 	//注册所有的编解码器
 	avcodec_register_all();

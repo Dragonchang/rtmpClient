@@ -35,7 +35,7 @@ public:
 	virtual ~CameraCapture();
 
 public:
-	void startCameraCapture();
+	void startCameraCapture(int cameraDeviceIndex);
 	void doCapture();
 	long getFramerate() { return mFramerate; }
 

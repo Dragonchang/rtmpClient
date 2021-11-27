@@ -10,21 +10,13 @@ CameraCapture::CameraCapture()
 {
 	mCapturethread = new NThread();
 	mCaptureHandler = new CameraCaptureHandler(mCapturethread->getLooper(), this);
-	mCameraDeviceIndex = 2;
-	/*
-	mCaptureWidth = 848;
-	mCaptureHeight = 480;
-	mDisplayWidth = 848;
-	mDisplayHeight = 480;
-	mFramerate = 26;
-	*/
+	mCameraDeviceIndex = 0;
 	mCaptureWidth = 640;
 	mCaptureHeight = 480;
 	mDisplayWidth = 640;
 	mDisplayHeight = 480;
 	mFramerate = 30;
 	mFlipMethod = 0;
-	mPushRtmp = new PushRtmp(mDisplayWidth, mDisplayHeight, mFramerate, mCameraDeviceIndex);
 }
 
 /*****************************************************************
@@ -51,13 +43,14 @@ CameraCapture::~CameraCapture()
 * 作用doCapture：开始抓取摄像头信号
 *
 *****************************************************************/
-void CameraCapture::startCameraCapture()
+void CameraCapture::startCameraCapture(int cameraDeviceIndex)
 {
-	int isSuccess = openCamera();
-	if (isSuccess == FAILURE)
-	{
-		printf("openCamera failed!");
-	}
+	//int isSuccess = openCamera();
+	//if (isSuccess == FAILURE)
+	//{
+		//printf("openCamera failed!");
+	//}
+	mCameraDeviceIndex = cameraDeviceIndex;
 	Message* message = Message::obtain(CameraCaptureHandler::CAPTURE_MESSAGE);
 	mCaptureHandler->sendMessage(message);
 }
@@ -256,6 +249,9 @@ void CameraCapture::doCapture()
 			sleep(2);
 			return;
 		}
+		//打开摄像头成功
+		//创建推流对象
+		mPushRtmp = new PushRtmp(mDisplayWidth, mDisplayHeight, mFramerate, mCameraDeviceIndex);
 	}
 	Mat frame;
 	if (!mVideoCapture->grab())

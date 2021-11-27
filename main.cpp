@@ -14,8 +14,11 @@
 int main(int argc, char **argv) {
 
 	Looper *mMainLooper = new Looper();
-	CameraCapture *mCameraCapture = new CameraCapture();
-	mCameraCapture->startCameraCapture();
+	CameraCapture *mCameraCapture1 = new CameraCapture();
+	mCameraCapture1->startCameraCapture(0);
+
+	CameraCapture *mCameraCapture2 = new CameraCapture();
+	mCameraCapture1->startCameraCapture(2);
 
 	mMainLooper->loop();
     return 0;
