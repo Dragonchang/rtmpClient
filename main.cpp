@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 	mCameraCapture1->startCameraCapture(0);
 
 	CameraCapture *mCameraCapture2 = new CameraCapture();
-	mCameraCapture1->startCameraCapture(2);
+	mCameraCapture2->startCameraCapture(2);
 
 	mMainLooper->loop();
     return 0;
