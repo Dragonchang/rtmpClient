@@ -46,11 +46,6 @@ CameraCapture::~CameraCapture()
 *****************************************************************/
 void CameraCapture::startCameraCapture(int cameraDeviceIndex)
 {
-	//int isSuccess = openCamera();
-	//if (isSuccess == FAILURE)
-	//{
-		//printf("openCamera failed!");
-	//}
 	mCameraDeviceIndex = cameraDeviceIndex;
 	Message* message = Message::obtain(CameraCaptureHandler::CAPTURE_MESSAGE);
 	mCaptureHandler->sendMessage(message);
@@ -66,22 +61,12 @@ int CameraCapture::openCamera()
 {
 	try
 	{
-		if (isCISCamera())
-		{
-			printf("openCamera index 0\n");
-			string pipeline = gstreamerPipeline();
-			mVideoCapture = new VideoCapture(pipeline, CAP_GSTREAMER);
-		}
-		else 
-		{
-			printf("openCamera index 1\n");
-			//mVideoCapture = new VideoCapture("/home/deepblue/zfl/test3.mp4");
-			
-			mVideoCapture = new VideoCapture(mCameraDeviceIndex);
-			mVideoCapture->set(cv::CAP_PROP_FRAME_WIDTH, mCaptureWidth);
-			mVideoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, mCaptureHeight);
-			mVideoCapture->set(cv::CAP_PROP_FPS, mFramerate);
-		}
+		printf("openCamera index %d\n", mCameraDeviceIndex);
+		mVideoCapture = new VideoCapture(mCameraDeviceIndex);
+		mVideoCapture->set(cv::CAP_PROP_FRAME_WIDTH, mCaptureWidth);
+		mVideoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, mCaptureHeight);
+		mVideoCapture->set(cv::CAP_PROP_FPS, mFramerate);
+
 		if (isCameraOpen())
 		{
 			int inWidth = mVideoCapture->get(cv::CAP_PROP_FRAME_WIDTH);
@@ -113,21 +98,6 @@ int CameraCapture::openCamera()
 	}
 	return FAILURE;
 }
-
-/*****************************************************************
-* name:isCISCamera
-* function: «∑Ò «∞Â‘ÿ…„œÒÕ∑
-*
-*****************************************************************/
-bool CameraCapture::isCISCamera()
-{
-	//if (mCameraDeviceIndex == 3)
-	//{
-		//return true;
-	//}
-	return false;
-}
-
 
 /*****************************************************************
 * name:isCameraOpen

@@ -42,7 +42,6 @@ public:
 private:
 	string gstreamerPipeline();
 	int openCamera();
-	bool isCISCamera();
 	bool isCameraOpen();
 	AVFrame* cvmatToAvframe(Mat* image);
 	void releaseCamera();
