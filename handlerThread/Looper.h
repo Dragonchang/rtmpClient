@@ -21,6 +21,7 @@ public:
     void quit(bool removeAllMessage);
     MessageQueue* getMessageQueue() { return mMessageQueue;}
     void enqueueMessage(Message* message);
+    void removeAndDeleteAllMessage();
     static void setForThread(Looper* looper);
     static Looper* getForThread();
 

@@ -44,3 +44,13 @@ void Handler::handlerMessage(Message *message){
     if (DEBUG) printf("tid:%d Handler::handlerMessage what =%d\n",(unsigned)pthread_self() ,message->what);
     sleep(2);
 }
+
+void Handler::removeAndDeleteAllMessage() {
+	printf("tid:%d Handler::removeAndDeleteAllMessage\n", (unsigned)pthread_self());
+	if (mLooper != NULL) {
+        mLooper->removeAndDeleteAllMessage();
+	}
+	else {
+        printf("looper is null\n");
+	}
+}

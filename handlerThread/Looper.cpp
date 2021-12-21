@@ -61,3 +61,13 @@ void Looper::quit(bool removeAllMessage) {
     mMessageQueue->setQuit(true);
     mMessageQueue->wake();
 }
+
+void Looper::removeAndDeleteAllMessage() {
+    if (mQuit == true) {
+        if (DEBUG) printf("tid:%d Looper is quit stop enqueue message\n", (unsigned)pthread_self());
+        return;
+    }
+    if (mMessageQueue) {
+        mMessageQueue->removeAndDeleteAllMessage();
+    }
+}

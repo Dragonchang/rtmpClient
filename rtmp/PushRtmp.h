@@ -56,7 +56,7 @@ private:
 	int m_height;
 	int m_fps;
 
-	int m_framecnt;
+	volatile int m_framecnt;
 	int m_localRtmpFailedTimes;
 	int m_vpts;
 

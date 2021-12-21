@@ -45,13 +45,16 @@ PushRtmp::~PushRtmp()
 *****************************************************************/
 bool PushRtmp::pushRtmp(AVFrame *frame)
 {
-
 	if (frame == NULL)
 	{
 		printf("pushRtmp with null frame!\n");
 		return false;
 	}
-	m_framecnt++;
+    m_framecnt++;
+    if (m_framecnt >20) {
+        printf("pushRtmp m_framecnt more than 20 clear***!\n");
+        mPushRtmpHandler->removeAndDeleteAllMessage();
+    }
 	Message* message = Message::obtain(PushRtmpHandler::CAPTURE_MESSAGE, frame);
 	mPushRtmpHandler->sendMessage(message);
 }
