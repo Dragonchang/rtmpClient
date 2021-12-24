@@ -224,18 +224,21 @@ void CameraCapture::doCapture()
 		//创建推流对象
 		mPushRtmp = new PushRtmp(mDisplayWidth, mDisplayHeight, mFramerate, mCameraDeviceIndex);
 	}
-	Mat frame;
+	Mat* frame = new Mat();
 	if (!mVideoCapture->grab())
 	{
 		printf("Grabs the next frame from capturing device is empty\n");
 		return;
 	}
-	if (!mVideoCapture->retrieve(frame))
+	if (!mVideoCapture->retrieve(*frame))
 	{
 		printf("Decodes and returns the grabbed video frame failed\n");
 		return;
 	}
-	mPushRtmp->pushRtmp(cvmatToAvframe(&frame));
+	Mat* yuvImg = new Mat();
+	cv::cvtColor(*frame, *yuvImg, CV_BGR2YUV_I420);
+	mPushRtmp->pushRtmp(yuvImg);
+	delete frame;
 }
 
 /*****************************************************************
@@ -277,7 +280,7 @@ void CameraCaptureHandler::handlerMessage(Message *message)
 	mCameraCapture->doCapture();
 	gettimeofday(&endTime, nullptr);
 	long delay = getNextFrameDelay(startTime, endTime);
-	printf("doCapture end need delay: %ld\n", delay);
+	//printf("doCapture end need delay: %ld\n", delay);
 	Message* newMessage = Message::obtain(CameraCaptureHandler::CAPTURE_MESSAGE);
 	if (delay > 0) 
 	{
@@ -297,6 +300,6 @@ void CameraCaptureHandler::handlerMessage(Message *message)
 long CameraCaptureHandler::getNextFrameDelay(timeval startTime, timeval endTime)
 {
 	long temp = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec)/ 1000;
-	printf("doCapture cost time = %ld\n", temp);
+	//printf("doCapture cost time = %ld\n", temp);
 	return 1000 / mCameraCapture->getFramerate() - temp;
 }

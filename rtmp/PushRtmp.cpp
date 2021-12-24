@@ -20,6 +20,7 @@ PushRtmp::PushRtmp(int width, int height, int fps, int cameraDeviceIndex)
 
 	//初始化网络库
 	avformat_network_init();
+        mMppEncoder = new MppEncoder();
 
 	mPushRtmpThread = new NThread();
 	mPushRtmpHandler = new PushRtmpHandler(mPushRtmpThread->getLooper(), this);
@@ -45,18 +46,36 @@ PushRtmp::~PushRtmp()
 *****************************************************************/
 bool PushRtmp::pushRtmp(AVFrame *frame)
 {
-	if (frame == NULL)
-	{
-		printf("pushRtmp with null frame!\n");
-		return false;
-	}
+    if (frame == NULL) {
+	printf("pushRtmp with null frame!\n");
+	return false;
+    }
     m_framecnt++;
     if (m_framecnt >20) {
         printf("pushRtmp m_framecnt more than 20 clear***!\n");
         mPushRtmpHandler->removeAndDeleteAllMessage();
     }
+    Message* message = Message::obtain(PushRtmpHandler::CAPTURE_MESSAGE, frame);
+    mPushRtmpHandler->sendMessage(message);
+}
+
+bool PushRtmp::pushRtmp(Mat* frame)
+{
+	if (frame == NULL) {
+		printf("pushRtmp with null frame!\n");
+		return false;
+	}
+	int cols = frame->cols;
+	int rows = frame->rows;
+	//printf("pushRtmp cols: %d, rows: %d\n", cols, rows);
+	m_framecnt++;
+	if (m_framecnt > 20) {
+		printf("pushRtmp m_framecnt more than 20 clear***!\n");
+		mPushRtmpHandler->removeAndDeleteAllMessage();
+	}
 	Message* message = Message::obtain(PushRtmpHandler::CAPTURE_MESSAGE, frame);
 	mPushRtmpHandler->sendMessage(message);
+	return false;
 }
 /*****************************************************************
 *
@@ -69,6 +88,7 @@ bool PushRtmp::initRtmp()
 	int ret = 0;
 	m_rtmpStatus = false;
 	m_vpts = 0;
+	/*
 	//初始化编码上下文
 	//找到编码器
 	AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_H264);
@@ -119,6 +139,8 @@ bool PushRtmp::initRtmp()
 		avcodec_free_context(&m_vc);
 		return false;
 	}
+        */
+	mMppEncoder->init();
 	//如果是输入文件 flv可以不传，可以从文件中判断。如果是流则必须传
 	//创建输出上下文
 	ret = avformat_alloc_output_context2(&m_octx, NULL, "flv", mOutUrl.c_str());
@@ -130,7 +152,8 @@ bool PushRtmp::initRtmp()
 	}
 	printf("avformat_alloc_output_context2 success!\n");
 	//为输出上下文添加音视频流（初始化一个音视频流容器）
-	m_out_stream = avformat_new_stream(m_octx, codec);
+	//m_out_stream = avformat_new_stream(m_octx, codec);
+	m_out_stream = avformat_new_stream(m_octx, NULL);
 	if (!m_out_stream)
 	{
 		printf("未能成功添加音视频流\n");
@@ -139,10 +162,36 @@ bool PushRtmp::initRtmp()
 		//ret = AVERROR_UNKNOWN;
 		return false;
 	}
+	SpsHeader sps_header;
+	ret = mMppEncoder->getSpsInfo(&sps_header);
+	if (ret != 0) {
+	    printf("getSpsInfofailed:%d\n", ret);
+	    return false;
+	}
+	m_vc = m_out_stream->codec;
+	m_vc->codec_id = AV_CODEC_ID_H264;
+	m_vc->codec_type = AVMEDIA_TYPE_VIDEO;
+	m_vc->codec_tag = 0;
+	m_vc->pix_fmt = AV_PIX_FMT_YUV420P;
+	m_vc->width = m_width;
+	m_vc->height = m_height;
+	m_vc->extradata = sps_header.data;
+	m_vc->extradata_size = sps_header.size;
+
+	m_vc->bit_rate = 800000;
+	m_vc->time_base = { 1, m_fps };
+	m_vc->framerate = { m_fps, 1 };
+
+	m_vc->gop_size = m_fps * 2;
+	m_vc->has_b_frames = 0;
+	m_vc->max_b_frames = 0;
+	m_vc->qmin = 10;
+	m_vc->qmax = 30;
+
 	m_out_stream->time_base.num = 1;
 	m_out_stream->time_base.den = m_fps;
-	m_out_stream->codec = m_vc;
-
+	//m_out_stream->codec = m_vc;
+      
 	av_dump_format(m_octx, 0, mOutUrl.c_str(), 1);
 	//打开IO
 	ret = avio_open(&m_octx->pb, mOutUrl.c_str(), AVIO_FLAG_WRITE);
@@ -164,6 +213,7 @@ bool PushRtmp::initRtmp()
 		return false;
 	}
 	m_rtmpStatus = true;
+	printf("PushRtmp::initRtmp success!\n");
 	return true;
 }
 
@@ -173,11 +223,11 @@ bool PushRtmp::initRtmp()
 * 作用：releaseAVFrame
 *
 *****************************************************************/
-void PushRtmp::releaseAVFrame(AVFrame *avframe)
+void PushRtmp::releaseAVFrame(Mat *avframe)
 {
 	if (avframe != NULL)
 	{
-		av_frame_free(&avframe);
+		delete avframe;
 		avframe = NULL;
 	}
 }
@@ -203,13 +253,13 @@ void PushRtmpHandler::handlerMessage(Message *message)
 	timeval startTime;
 	timeval endTime;
 	gettimeofday(&startTime, nullptr);
-	AVFrame *frame = (AVFrame *)message->mObj;
+	Mat *frame = (Mat *)message->mObj;
 	do
 	{
 		if (frame == NULL)
 		{
 			printf("frame is null\n");
-			return;
+			break;
 		}
 		if (!mPushRtmp->getRtmpStatus())
 		{
@@ -217,28 +267,16 @@ void PushRtmpHandler::handlerMessage(Message *message)
 			if (!mPushRtmp->initRtmp())
 			{
 				printf("restart pushrtmp failed\n");
-				return;
+				break;
 			}
 		}
 		int ret = 0;
 		AVPacket pack;
 		memset(&pack, 0, sizeof(pack));
-		ret = avcodec_send_frame(mPushRtmp->getAVCodecContext(), frame);
-		if (ret != 0)
-		{
-			printf("avcodec_send_frame error %d\n", ret);
-			return;
-		}
-
-		ret = avcodec_receive_packet(mPushRtmp->getAVCodecContext(), &pack);
-		if (ret != 0 || pack.size > 0)
-		{
-			printf("avcodec_receive_packet: %d\n", pack.size);
-		}
-		else
-		{
-			printf("avcodec_receive_packet error\n");
-			return;
+        ret = mPushRtmp->getMppEncoder()->rkmpp_encode_frame(frame, &pack);
+		if (ret != 0) {
+		    printf("rkmpp_encode_frame error %d\n", ret);
+		    break;
 		}
 		pack.stream_index = mPushRtmp->getOutstream()->index;
 		AVRational time_base = mPushRtmp->getOutstream()->time_base;//{ 1, 1000 };
@@ -254,7 +292,7 @@ void PushRtmpHandler::handlerMessage(Message *message)
 		pack.duration = av_rescale_q(calc_duration, time_base_q, time_base);
 		pack.pos = -1;
 
-		printf("pts:%d,dts:%d,duration:%d\n", pack.pts, pack.dts, pack.duration);
+		//printf("pts:%d,dts:%d,duration:%d\n", pack.pts, pack.dts, pack.duration);
 
 		if (av_interleaved_write_frame(mPushRtmp->getAVFormatContext(), &pack) < 0) //写入图像到视频
 		{
@@ -262,7 +300,7 @@ void PushRtmpHandler::handlerMessage(Message *message)
 			printf("av_interleaved_write_frame local failed failedTimes%d\n", failedTimes);
 			if (failedTimes < 5 * mPushRtmp->getFps())
 			{
-				return;
+				break;
 			}
 			else
 			{
@@ -275,13 +313,13 @@ void PushRtmpHandler::handlerMessage(Message *message)
 				mPushRtmp->setRtmpStatus(false);
 			}
 		}
-		mPushRtmp->reduceFrameCount();
-		printf("end pushRtmp now still has %d frame.\n", mPushRtmp->getFrameCount());
 	} while (0);
 	//释放AVFrame
+	mPushRtmp->reduceFrameCount();
+	//printf("end pushRtmp now still has %d frame.\n", mPushRtmp->getFrameCount());
 	mPushRtmp->releaseAVFrame(frame);
 	gettimeofday(&endTime, nullptr);
 	long temp = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
-	printf("PushRtmp***** cost time = %ld\n", temp);
+	//printf("PushRtmp***** cost time = %ld\n", temp);
 }
 

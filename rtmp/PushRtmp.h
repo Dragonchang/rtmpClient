@@ -6,6 +6,7 @@
 #include "../handlerThread/Message.h"
 #include "../handlerThread/Looper.h"
 #include "../handlerThread/NThread.h"
+#include "./MppEncoder.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -24,12 +25,14 @@ extern "C"
 using namespace std;
 
 class PushRtmpHandler;
+class MppEncoder;
 class PushRtmp
 {
 public:
     PushRtmp(int width, int height, int fps, int cameraDeviceIndex);
 	virtual ~PushRtmp();
 	bool pushRtmp(AVFrame *frame);
+	bool pushRtmp(Mat *frame);
 	int getFps() { return m_fps; }
 	int getFrameCount(){ return m_framecnt;}
 	void reduceFrameCount() { --m_framecnt;}
@@ -44,8 +47,9 @@ public:
 	AVStream *getOutstream() { return m_out_stream; }
 	AVFormatContext * getAVFormatContext() { return m_octx; }
 	AVCodecContext *getAVCodecContext() { return m_vc; }
+	MppEncoder* getMppEncoder() { return mMppEncoder; }
 	bool initRtmp();
-	void releaseAVFrame(AVFrame *avframe);
+	void releaseAVFrame(Mat *avframe);
 private:
 	//srs推流地址
 	string mOutUrl;
@@ -63,6 +67,7 @@ private:
 	AVStream *m_out_stream;
 	AVFormatContext * m_octx;
 	AVCodecContext *m_vc;
+        MppEncoder* mMppEncoder;
 
 	PushRtmpHandler *mPushRtmpHandler;
 	NThread *mPushRtmpThread;
