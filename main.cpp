@@ -15,10 +15,10 @@ int main(int argc, char **argv) {
 
 	Looper *mMainLooper = new Looper();
 	CameraCapture *mCameraCapture1 = new CameraCapture();
-	mCameraCapture1->startCameraCapture(0);
+	mCameraCapture1->startCameraCapture(0, 1);
 
 	CameraCapture *mCameraCapture2 = new CameraCapture();
-	mCameraCapture2->startCameraCapture(2);
+	mCameraCapture2->startCameraCapture(2, 2);
 
 	mMainLooper->loop();
     return 0;

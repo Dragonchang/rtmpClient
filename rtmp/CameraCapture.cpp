@@ -44,9 +44,10 @@ CameraCapture::~CameraCapture()
 * 作用doCapture：开始抓取摄像头信号
 *
 *****************************************************************/
-void CameraCapture::startCameraCapture(int cameraDeviceIndex)
+void CameraCapture::startCameraCapture(int cameraDeviceIndex, int rtmpIndex)
 {
 	mCameraDeviceIndex = cameraDeviceIndex;
+    mRtmpIndex = rtmpIndex;
 	Message* message = Message::obtain(CameraCaptureHandler::CAPTURE_MESSAGE);
 	mCaptureHandler->sendMessage(message);
 }
@@ -222,7 +223,7 @@ void CameraCapture::doCapture()
 		}
 		//打开摄像头成功
 		//创建推流对象
-		mPushRtmp = new PushRtmp(mDisplayWidth, mDisplayHeight, mFramerate, mCameraDeviceIndex);
+		mPushRtmp = new PushRtmp(mDisplayWidth, mDisplayHeight, mFramerate, mRtmpIndex);
 	}
 	Mat* frame = new Mat();
 	if (!mVideoCapture->grab())

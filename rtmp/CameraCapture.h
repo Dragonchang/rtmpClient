@@ -36,7 +36,7 @@ public:
 	virtual ~CameraCapture();
 
 public:
-	void startCameraCapture(int cameraDeviceIndex);
+	void startCameraCapture(int cameraDeviceIndex, int rtmpIndex);
 	void doCapture();
 	long getFramerate() { return mFramerate; }
 
@@ -65,7 +65,7 @@ private:
 	int m_vpts;
 	//ƒ¨»œ π”√/dev/video1 usb
 	int mCameraDeviceIndex;
-
+        int mRtmpIndex;
 	PushRtmp *mPushRtmp;
 
 };

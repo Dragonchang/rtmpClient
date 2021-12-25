@@ -72,10 +72,11 @@ bool PushRtmp::pushRtmp(Mat* frame)
 	if (m_framecnt > 20) {
 		printf("pushRtmp m_framecnt more than 20 clear***!\n");
 		mPushRtmpHandler->removeAndDeleteAllMessage();
+	m_framecnt = 0;
 	}
 	Message* message = Message::obtain(PushRtmpHandler::CAPTURE_MESSAGE, frame);
 	mPushRtmpHandler->sendMessage(message);
-	return false;
+	return true;
 }
 /*****************************************************************
 *
