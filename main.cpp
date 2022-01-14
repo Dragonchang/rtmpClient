@@ -3,7 +3,7 @@
 #include "./handlerThread/NThread.h"
 #include "./handlerThread/Condition.h"
 #include "./handlerThread/Meutex.h"
-#include "./rtmp/CameraCapture.h"
+#include "./rtmp/RtmpManager.h"
 #include "./base/BaseHeader.h"
 
 /*******************************************************************
@@ -14,12 +14,8 @@
 int main(int argc, char **argv) {
 
 	Looper *mMainLooper = new Looper();
-	CameraCapture *mCameraCapture1 = new CameraCapture();
-	mCameraCapture1->startCameraCapture(0, 1);
-
-	CameraCapture *mCameraCapture2 = new CameraCapture();
-	mCameraCapture2->startCameraCapture(2, 2);
-
+	RtmpManager *rtmpManger = new RtmpManager();
+	rtmpManger->startRtmp();
 	mMainLooper->loop();
     return 0;
 }

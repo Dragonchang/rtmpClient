@@ -33,3 +33,4 @@ logs/
 .vscode/
 *.DS_Store
 out/
+.vs

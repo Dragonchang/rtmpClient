@@ -24,7 +24,28 @@ MppEncoder::MppEncoder()
 
 MppEncoder::~MppEncoder()
 {
+	if(mMppCtx != NULL) {
+		mpp_destroy(mMppCtx);
+		mMppCtx = NULL;
+	}
+	
+	if(mMppEncCfg != NULL) {
+		mpp_enc_cfg_deinit(mMppEncCfg);
+		mMppEncCfg = NULL;
+	}
 
+	if (frm_buf != NULL) {
+		mpp_buffer_put(frm_buf);
+		frm_buf = NULL;
+	}
+	if (pkt_buf != NULL) {
+		mpp_buffer_put(pkt_buf);
+		pkt_buf = NULL;
+	}
+	if (buf_grp != NULL) {
+		mpp_buffer_group_put(buf_grp);
+		buf_grp = NULL;
+	}
 }
 
 int MppEncoder::init()

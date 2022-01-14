@@ -20,7 +20,7 @@ PushRtmp::PushRtmp(int width, int height, int fps, int cameraDeviceIndex)
 
 	//初始化网络库
 	avformat_network_init();
-        mMppEncoder = new MppEncoder();
+    mMppEncoder = new MppEncoder();
 
 	mPushRtmpThread = new NThread();
 	mPushRtmpHandler = new PushRtmpHandler(mPushRtmpThread->getLooper(), this);
@@ -35,7 +35,30 @@ PushRtmp::PushRtmp(int width, int height, int fps, int cameraDeviceIndex)
 *****************************************************************/
 PushRtmp::~PushRtmp()
 {
-    
+	//stop push thread
+	if (mPushRtmpThread != NULL) {
+		delete mPushRtmpThread;
+		mPushRtmpThread = NULL;
+	}
+	if (mPushRtmpHandler != NULL) {
+		mPushRtmpHandler->removeAndDeleteAllMessage();
+		delete mPushRtmpHandler;
+		mPushRtmpHandler = NULL;
+	}
+    /*
+	if (m_vc != NULL) {
+		avcodec_free_context(&m_vc);
+		m_vc = NULL;
+	}
+	if (m_octx != NULL) {
+		avformat_close_input(&m_octx);
+		m_octx = NULL;
+	}
+	*/
+	if (mMppEncoder != NULL) {
+		delete mMppEncoder;
+		mMppEncoder = NULL;
+	}
 }
 
 /*****************************************************************

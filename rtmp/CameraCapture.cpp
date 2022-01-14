@@ -6,10 +6,11 @@
 * 作用：构造函数
 *
 *****************************************************************/
-CameraCapture::CameraCapture()
+CameraCapture::CameraCapture(RtmpManager* rtmpManager)
 {
 	mCapturethread = new NThread();
 	mCaptureHandler = new CameraCaptureHandler(mCapturethread->getLooper(), this);
+	mRtmpManager = rtmpManager;
 	mCameraDeviceIndex = 0;
 	mCaptureWidth = 640;
 	mCaptureHeight = 480;
@@ -28,6 +29,17 @@ CameraCapture::CameraCapture()
 *****************************************************************/
 CameraCapture::~CameraCapture()
 {
+	//stop capture thread
+	if (mCapturethread != NULL) {
+		delete mCapturethread;
+		mCapturethread = NULL;
+	}
+	if (mCaptureHandler != NULL) {
+		mCaptureHandler->removeAndDeleteAllMessage();
+		delete mCaptureHandler;
+		mCaptureHandler = NULL;
+	}
+
 	if (mVideoCapture != NULL) {
 		if (mVideoCapture->isOpened())
 		{
@@ -35,6 +47,17 @@ CameraCapture::~CameraCapture()
 		}
 		delete mVideoCapture;
 		mVideoCapture = NULL;
+	}
+
+	//if (m_Vsc != NULL) {
+		//sws_freeContext(m_Vsc);
+		//delete m_Vsc;
+		//m_Vsc = NULL;
+	//}
+
+	if (mPushRtmp != NULL) {
+		delete mPushRtmp;
+		mPushRtmp = NULL;
 	}
 }
 
@@ -46,6 +69,7 @@ CameraCapture::~CameraCapture()
 *****************************************************************/
 void CameraCapture::startCameraCapture(int cameraDeviceIndex, int rtmpIndex)
 {
+	printf("startCameraCapture index %d rtmpIndex: %d\n", mCameraDeviceIndex, rtmpIndex);
 	mCameraDeviceIndex = cameraDeviceIndex;
     mRtmpIndex = rtmpIndex;
 	Message* message = Message::obtain(CameraCaptureHandler::CAPTURE_MESSAGE);
@@ -83,7 +107,7 @@ int CameraCapture::openCamera()
 			if (m_Vsc == NULL) {
 				printf("初始化格式转换上下文失败\n");
 				releaseCamera();
-				return false;
+				return FAILURE;
 			}
 			m_vpts = 0;
 			return SUCCESS;
@@ -228,12 +252,20 @@ void CameraCapture::doCapture()
 	Mat* frame = new Mat();
 	if (!mVideoCapture->grab())
 	{
+		if (mRtmpManager != NULL) {
+			mRtmpManager->errorCamera(mCameraDeviceIndex);
+		}
 		printf("Grabs the next frame from capturing device is empty\n");
+		sleep(5);
 		return;
 	}
 	if (!mVideoCapture->retrieve(*frame))
 	{
+		if (mRtmpManager != NULL) {
+			mRtmpManager->errorCamera(mCameraDeviceIndex);
+		}
 		printf("Decodes and returns the grabbed video frame failed\n");
+		sleep(5);
 		return;
 	}
 	Mat* yuvImg = new Mat();

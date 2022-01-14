@@ -67,7 +67,7 @@ private:
 	AVStream *m_out_stream;
 	AVFormatContext * m_octx;
 	AVCodecContext *m_vc;
-        MppEncoder* mMppEncoder;
+	MppEncoder* mMppEncoder;
 
 	PushRtmpHandler *mPushRtmpHandler;
 	NThread *mPushRtmpThread;

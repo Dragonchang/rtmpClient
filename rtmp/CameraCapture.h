@@ -7,6 +7,7 @@
 #include "../handlerThread/Looper.h"
 #include "../handlerThread/NThread.h"
 #include "./PushRtmp.h"
+#include "./RtmpManager.h"
 
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/opencv.hpp>
@@ -29,10 +30,11 @@ using namespace std;
 using namespace cv;
 class CameraCaptureHandler;
 class PushRtmp;
+class RtmpManager;
 class CameraCapture
 {
 public:
-	CameraCapture();
+	CameraCapture(RtmpManager* rtmpManager);
 	virtual ~CameraCapture();
 
 public:
@@ -51,6 +53,7 @@ private:
 private:
 	CameraCaptureHandler *mCaptureHandler;
 	NThread *mCapturethread;
+	RtmpManager* mRtmpManager;
 
 	VideoCapture *mVideoCapture;
 	SwsContext *m_Vsc;
